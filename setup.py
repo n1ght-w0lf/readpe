@@ -12,7 +12,6 @@ setuptools.setup(
     license="MIT",
     classifiers=[
         "Environment :: Console",
-        "Topic :: Reverse Engineering :: Malware Analysis",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
