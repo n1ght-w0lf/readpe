@@ -342,7 +342,7 @@ def main():
 	usage_msg = lambda : "readpe <pefile> <options>"
 	parser = MyCustomParser(add_help=False,
 							formatter_class=formatter,
-							description=" Display information about the contents of PE format files",
+							description=" Display information about the contents of PE files",
 							epilog="Example: readpe test.exe -d -h -o",
 							usage=usage_msg())
 
