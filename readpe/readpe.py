@@ -194,7 +194,7 @@ def show_data_directories(pe):
 
 	for data_directory in pe.OPTIONAL_HEADER.DATA_DIRECTORY:
 		data_directory_table.append([
-			data_directory.__file_offset__,
+			hex(data_directory.__file_offset__),
 			data_directory.name,
 			hex(data_directory.VirtualAddress),
 			hex(data_directory.Size)
