@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="readpe",
-    version="0.1",
+    version="0.2",
     description="A cross platform tool to work with PE files from the command line.",
     long_description=long_description,
     long_description_content_type="text/markdown",
