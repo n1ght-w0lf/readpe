@@ -1,6 +1,7 @@
 import argparse
 import pefile
 import os
+import sys
 from tabulate import tabulate
 
 def show_all_headers(pe):
@@ -208,7 +209,7 @@ def show_data_directories(pe):
 
 def show_imports(pe):
 	if pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT']].VirtualAddress == 0:
-		print("No Imports")
+		print("no imports found")
 		return;
 
 	import_table = []
@@ -230,7 +231,7 @@ def show_imports(pe):
 
 def show_exports(pe):
 	if pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_EXPORT']].VirtualAddress == 0:
-		print("No Exports")
+		print("no exports found")
 		return;
 
 	export_table = []
@@ -277,7 +278,7 @@ def show_sections(pe):
 
 def show_resources(pe):
 	if pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_RESOURCE']].VirtualAddress == 0:
-		print("No Resources")
+		print("no resources found")
 		return
 
 	resource_table = []
@@ -309,7 +310,7 @@ def show_resources(pe):
 def extract_resources(pe, _type=None, _name=None):
 	if (_type != None) and (_name != None):
 		for rsrc in pe.DIRECTORY_ENTRY_RESOURCE.entries:
-			rsrc_type_str = pefile.RESOURCE_TYPE.get(rsrc.id, "RT_DATA")[3:]	# ignore RT_
+			rsrc_type_str = pefile.RESOURCE_TYPE.get(rsrc.id, "RT_DATA")[3:]
 			rsrc_type = str(rsrc.name) if rsrc.name != None else str(rsrc.id)
 
 			if rsrc_type == _type:
@@ -318,22 +319,34 @@ def extract_resources(pe, _type=None, _name=None):
 					if entry_name == _name:
 						offset = entry.directory.entries[0].data.struct.OffsetToData
 						size = entry.directory.entries[0].data.struct.Size
-						data = pe.get_memory_mapped_image()[offset:offset+size]
-						with open(rsrc_type_str+"_"+entry_name, "wb") as f: f.write(data)
+						data = pe.get_data(offset, size)
+
+						ico_header = b"\x00\x00\x01\x00\x01\x00\x20\x40\x00\x00\x01\x00\x04\x00\xE8\x02\x00\x00\x16\x00\x00\x00"
+						if rsrc_type_str == "ICON": data = ico_header + data
+
+						dump_name = (rsrc_type_str if rsrc.name == None else str(rsrc.name)) + "_" + entry_name
+						with open(dump_name, "wb") as f: f.write(data)
 						return
-	parser.print_help()		# in case of wrong type or name
+	print("please specify the resource type and name.")
 	exit()
 
 ####################################################################################################################
 
+class MyCustomParser(argparse.ArgumentParser):
+    def error(self, message):
+        self.print_help()
+        exit()
+
 def main():
 	formatter = lambda prog: argparse.HelpFormatter(prog,max_help_position=50)
-	parser = argparse.ArgumentParser(add_help=False,
-									 formatter_class=formatter,
-									 description=" Display information about the contents of PE format files",
-									 epilog="Example: readpe -f test.exe -d -h -o")
+	usage_msg = lambda : "readpe <pefile> <options>"
+	parser = MyCustomParser(add_help=False,
+							formatter_class=formatter,
+							description=" Display information about the contents of PE format files",
+							epilog="Example: readpe test.exe -d -h -o",
+							usage=usage_msg())
 
-	parser.add_argument("-f", "--file", help="PE file path")
+	parser.add_argument("pefile", help="PE file path")
 
 	parser.add_argument("-H", "--all-headers", action='store_true', help="Display all PE headers")
 	parser.add_argument("-d", "--dos-header", action="store_true", help="Display the PE DOS header")
@@ -353,22 +366,21 @@ def main():
 
 	parser.add_argument("--help", action="help", help="Display this help")
 
-
 	args = parser.parse_args()
-	file_path = args.file
-
-	if file_path == None:
+	if(len(sys.argv) == 2):
 		parser.print_help()
 		exit()
 
+	file_path = args.pefile
+
 	if not os.path.isfile(file_path):
-		print("Error: File doesn't exist")
+		print("error: file doesn't exist")
 		exit()
 
 	try:
 		pe = pefile.PE(file_path)
 	except pefile.PEFormatError:
-		print("Error: Not a PE file")
+		print("error: not a PE file")
 		exit()
 
 	if args.all_headers:
