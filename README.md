@@ -23,13 +23,14 @@ $ python setup.py install
 # Usage
 
 ```
-usage: readpe.py [-f FILE] [-H] [-d] [-h] [-o] [-D] [-i] [-e] [-s] [-r] [-x]
-                 [-t TYPE] [-n NAME] [--help]
+usage: readpe <pefile> <options>
 
-Display information about the contents of PE format files
+Display information about the contents of PE files
+
+positional arguments:
+  pefile                 PE file path
 
 optional arguments:
-  -f FILE, --file FILE   PE file path
   -H, --all-headers      Display all PE headers
   -d, --dos-header       Display the PE DOS header
   -h, --file-header      Display the PE File header
@@ -44,7 +45,7 @@ optional arguments:
   -n NAME, --name NAME   Resource name to dump
   --help                 Display this help
 
-Example: readpe -f test.exe -d -h -o
+Example: readpe test.exe -d -h -o
 ```
 
 # 
